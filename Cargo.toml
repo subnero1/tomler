@@ -1,0 +1,23 @@
+[package]
+name = "tomler"
+version = "0.1.0"
+edition = "2021"
+authors = ["Chinmay Pendharkar <chinmay@subnero.com>"]
+license = "MIT"
+description = "A simple CLI utility for in-place editing of TOML files with type inference and nested key support"
+repository = "https://github.com/subnero1/tomler"
+readme = "README.md"
+keywords = ["toml", "cli", "config", "editor", "automation"]
+categories = ["command-line-utilities", "config", "development-tools"]
+
+[[bin]]
+name = "tomler"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+toml_edit = "0.22"
+anyhow = "1.0"
+
+[dev-dependencies]
+tempfile = "3"
