@@ -5,7 +5,7 @@ use std::process;
 use tomler::{get_value, infer_value, set_nested_in_document};
 
 #[derive(Parser)]
-#[command(name = "toml-cli")]
+#[command(name = "tomler")]
 #[command(about = "Edit TOML files in-place with simple type inference and nested keys")]
 struct Cli {
     /// TOML file path (default: config.toml)

@@ -1,0 +1,52 @@
+name: Release Linux ARM64 Binary
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-upload:
+    name: Build Linux ARM64 and upload
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Install Rust toolchain
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      # 3. Add Linux ARM64 target
+      - name: Add ARM64 target
+        run: rustup target add aarch64-unknown-linux-gnu
+
+      # 4. Install cross for ARM64 build
+      - name: Install cross
+        run: cargo install cross
+
+      # 5. Build Linux ARM64
+      - name: Build Linux ARM64
+        run: cross build --release --target aarch64-unknown-linux-gnu
+
+      # 6. Package binary
+      - name: Package Linux ARM64
+        run: |
+          mkdir -p dist
+          cp target/aarch64-unknown-linux-gnu/release/tomler dist/tomler-linux-arm64
+          tar -czvf dist/tomler-linux-arm64.tar.gz -C dist tomler-linux-arm64
+          rm dist/tomler-linux-arm64
+
+      # 7. Upload release asset
+      - name: Upload tarball
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/tomler-linux-arm64.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

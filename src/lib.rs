@@ -1,4 +1,4 @@
-//! Library functions for toml-cli. Keep logic here so tests can exercise it.
+//! Library functions for tomler. Keep logic here so tests can exercise it.
 
 use toml_edit::{DocumentMut, Item, Table, Value};
 
