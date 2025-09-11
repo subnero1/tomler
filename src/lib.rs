@@ -70,7 +70,7 @@ pub fn get_value(doc: &DocumentMut, key: &str) -> Option<String> {
         current = current.get(part)?;
     }
 
-    Some(current.to_string())
+    Some(current.to_string().trim().to_string())
 }
 
 /// Set a nested (dot-notated) key in the Document, creating tables as necessary.
