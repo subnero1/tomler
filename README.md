@@ -87,6 +87,13 @@ Retrieve a value from the TOML file using dot notation.
 ```bash
 tomler get server.port
 tomler -f app.toml get database.url
+
+# Default prints strings with quotes
+tomler get app.name         # => "My Application"
+
+# Raw string mode prints strings without quotes (useful in shells)
+tomler get --raw app.name   # => My Application
+tomler get -r app.name      # short flag
 ```
 
 #### `set <key> <value>`
@@ -194,6 +201,10 @@ tomler set monitoring.alert_thresholds "50,75,90,95"
 current_port=$(tomler get server.port)
 echo "Current port: $current_port"
 
+# Read a string value without quotes using raw mode
+app_name=$(tomler get --raw app.name)
+echo "App name: $app_name"
+
 # Update configuration based on environment
 if [[ "$ENV" == "production" ]]; then
     tomler set app.debug false
@@ -219,6 +230,7 @@ RUN cargo build --release
 FROM debian:bookworm-slim
 COPY --from=builder /target/release/tomler /usr/local/bin/
 RUN tomler set app.environment "production"
+RUN echo "Environment: $(tomler get --raw app.environment)"
 ```
 
 ## ⚠️ Error Handling
@@ -244,6 +256,27 @@ Exit codes:
 - `0`: Success
 - `1`: General error (file I/O, parsing, etc.)
 - `2`: Key not found (get command only)
+
+## 🧵 Raw String Mode
+
+When retrieving values with `get`, Tomler prints TOML tokens by default. That means strings include their quotes (e.g. `"example"`). If you're piping output to other commands or using shell variables, you may prefer unquoted strings.
+
+- Use `--raw` (or `-r`) to print strings without enclosing quotes.
+- Non-string values (numbers, booleans, arrays) are unaffected and print the same with or without `--raw`.
+
+Examples:
+
+```bash
+# Quoted by default
+tomler get app.name         # => "MyApp"
+
+# Unquoted with --raw
+tomler get --raw app.name   # => MyApp
+
+# Non-string values are unchanged
+tomler get --raw server.port   # => 8080
+tomler get --raw debug         # => true
+```
 
 ## 🛠️ Development
 
