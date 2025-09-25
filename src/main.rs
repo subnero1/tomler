@@ -19,7 +19,13 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Get a value by key (dot notation)
-    Get { key: String },
+    Get {
+        /// Key to get (supports dot notation for nested keys)
+        key: String,
+        /// Output raw strings without enclosing quotes
+        #[arg(short = 'r', long = "raw")]
+        raw: bool,
+    },
 
     /// Set a value by key (dot notation)
     Set { key: String, value: String },
@@ -36,15 +42,43 @@ fn main() -> anyhow::Result<()> {
         .map_err(|e| anyhow::anyhow!("failed to parse toml file {}: {}", cli.file, e))?;
 
     match cli.command {
-        Commands::Get { key } => {
-            match get_value(&doc, &key) {
-                Some(s) => {
-                    println!("{}", s);
-                    return Ok(());
+        Commands::Get { key, raw } => {
+            // Use dot-notation traversal so we can conditionally format strings
+            let parts: Vec<&str> = key.split('.').collect();
+            let mut current = doc.as_item();
+
+            for part in parts {
+                match current.get(part) {
+                    Some(next) => current = next,
+                    None => {
+                        eprintln!("Key not found: {}", key);
+                        process::exit(2);
+                    }
                 }
-                None => {
-                    eprintln!("Key not found: {}", key);
-                    process::exit(2);
+            }
+
+            if raw {
+                // If it's a string value, print without quotes; otherwise, print normally
+                if let Some(val) = current.as_value() {
+                    if let Some(s) = val.as_str() {
+                        println!("{}", s);
+                        return Ok(());
+                    }
+                }
+                // Fallback for non-strings: same as default representation
+                println!("{}", current.to_string().trim());
+                return Ok(());
+            } else {
+                // Default behavior: print TOML token (strings include quotes)
+                match get_value(&doc, &key) {
+                    Some(s) => {
+                        println!("{}", s);
+                        return Ok(());
+                    }
+                    None => {
+                        eprintln!("Key not found: {}", key);
+                        process::exit(2);
+                    }
                 }
             }
         }
